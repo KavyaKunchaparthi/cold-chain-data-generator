@@ -2,11 +2,22 @@ import random
 import uuid
 import pandas as pd
 from datetime import datetime, timedelta
+import os
+
+# ==========================================================
+# HELPER FUNCTION TO APPEND TO EXCEL
+# ==========================================================
+def append_to_excel(df, file_name):
+    if os.path.exists(file_name):
+        existing_df = pd.read_excel(file_name)
+        combined_df = pd.concat([existing_df, df], ignore_index=True)
+        combined_df.to_excel(file_name, index=False)
+    else:
+        df.to_excel(file_name, index=False)
 
 # ==========================================================
 # 1. PRODUCTS MASTER TABLE (Sensitivity Database)
 # ==========================================================
-
 products_master = [
     {
         "product_id": "P001",
@@ -55,7 +66,6 @@ df_products = pd.DataFrame(products_master)
 # ==========================================================
 # OUTPUT TABLES
 # ==========================================================
-
 shipments = []
 sensors = []
 events = []
@@ -65,27 +75,21 @@ decision_logs = []
 # ==========================================================
 # SETTINGS
 # ==========================================================
-
-NUM_SHIPMENTS = 500   # You can increase to 5000 later
+NUM_SHIPMENTS = 50   # daily shipments
 READINGS_PER_SHIPMENT = 50
 
 export_standards = ["US", "EU", "China"]
 locations = ["India Packhouse", "Dubai Port", "Rotterdam Port", "US Distribution"]
-
 stages = ["packhouse", "pre_cooling", "storage", "transport", "port", "distribution"]
-
 event_types = ["delay", "handling", "temperature_spike", "humidity_drop", "port_hold"]
-
 agents = ["RiskAgent", "ComplianceAgent", "MonitoringAgent"]
 
 # ==========================================================
 # GENERATE DATA
 # ==========================================================
-
 print("Generating full cold-chain synthetic dataset...")
 
 for i in range(NUM_SHIPMENTS):
-
     shipment_id = str(uuid.uuid4())
     product = random.choice(products_master)
 
@@ -116,21 +120,14 @@ for i in range(NUM_SHIPMENTS):
     anomaly_count = 0
 
     for r in range(READINGS_PER_SHIPMENT):
-
         timestamp = created_time + timedelta(minutes=15 * r)
-
         stage = random.choice(stages)
 
-        # Temperature Sensor
         temp = base_temp + random.uniform(-1, 1)
-
-        # Humidity Sensor
         humidity = base_humidity + random.uniform(-5, 5)
 
-        is_anomalous = False
-
-        if temp > product["critical_threshold"]:
-            is_anomalous = True
+        is_anomalous_temp = temp > product["critical_threshold"]
+        if is_anomalous_temp:
             anomaly_count += 1
 
         sensors.append({
@@ -141,7 +138,7 @@ for i in range(NUM_SHIPMENTS):
             "value": round(temp, 2),
             "unit": "°C",
             "location_stage": stage,
-            "is_anomalous": is_anomalous
+            "is_anomalous": is_anomalous_temp
         })
 
         sensors.append({
@@ -158,12 +155,9 @@ for i in range(NUM_SHIPMENTS):
     # -------------------------------
     # Events Table Rows
     # -------------------------------
-    if random.random() > 0.6:  # 40% shipments have events
-
+    if random.random() > 0.6:
         event = random.choice(event_types)
-
         severity = random.choice(["low", "medium", "high"])
-
         quality_loss = round(random.uniform(2, 20), 2)
 
         events.append({
@@ -182,7 +176,6 @@ for i in range(NUM_SHIPMENTS):
     # Quality Outcomes Table
     # -------------------------------
     final_quality = max(0, 95 - anomaly_count * product["thermal_sensitivity"])
-
     spoilage = "yes" if final_quality < 70 else "no"
     compliance = "failed" if spoilage == "yes" else "passed"
 
@@ -220,16 +213,17 @@ for i in range(NUM_SHIPMENTS):
 # ==========================================================
 # SAVE ALL TABLES TO EXCEL
 # ==========================================================
+append_to_excel(pd.DataFrame(shipments), "shipments.xlsx")
+append_to_excel(pd.DataFrame(sensors), "sensors.xlsx")
+append_to_excel(pd.DataFrame(events), "events.xlsx")
+append_to_excel(pd.DataFrame(quality_outcomes), "quality_outcomes.xlsx")
+append_to_excel(pd.DataFrame(decision_logs), "decision_log.xlsx")
 
-pd.DataFrame(shipments).to_excel("shipments.xlsx", index=False)
-pd.DataFrame(sensors).to_excel("sensors.xlsx", index=False)
-pd.DataFrame(events).to_excel("events.xlsx", index=False)
-pd.DataFrame(quality_outcomes).to_excel("quality_outcomes.xlsx", index=False)
+# Overwrite master products file (constant 3 products)
 pd.DataFrame(products_master).to_excel("products_master.xlsx", index=False)
-pd.DataFrame(decision_logs).to_excel("decision_log.xlsx", index=False)
 
 print("\n✅ FULL DATASET GENERATED SUCCESSFULLY!")
-print("Excel Files Created:")
+print("Excel Files Created / Updated:")
 print("1. shipments.xlsx")
 print("2. sensors.xlsx")
 print("3. events.xlsx")

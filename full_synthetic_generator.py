@@ -2,13 +2,71 @@ import random
 import uuid
 import pandas as pd
 from datetime import datetime, timedelta
-import os
+
+# ==========================================================
+# 1. PRODUCTS MASTER TABLE (Sensitivity Database)
+# ==========================================================
+
+products_master = [
+    {
+        "product_id": "P001",
+        "product_name": "Mango",
+        "temp_min": 1,
+        "temp_max": 3,
+        "critical_threshold": 6,
+        "max_dwell_time_hours": 120,
+        "humidity_min": 85,
+        "humidity_max": 95,
+        "shelf_life_days": 14,
+        "thermal_sensitivity": 0.8,
+        "handling_fragility": 7
+    },
+    {
+        "product_id": "P002",
+        "product_name": "Grape",
+        "temp_min": 0,
+        "temp_max": 2,
+        "critical_threshold": 5,
+        "max_dwell_time_hours": 100,
+        "humidity_min": 90,
+        "humidity_max": 98,
+        "shelf_life_days": 10,
+        "thermal_sensitivity": 0.9,
+        "handling_fragility": 8
+    },
+    {
+        "product_id": "P003",
+        "product_name": "Pomegranate",
+        "temp_min": 2,
+        "temp_max": 4,
+        "critical_threshold": 7,
+        "max_dwell_time_hours": 140,
+        "humidity_min": 80,
+        "humidity_max": 90,
+        "shelf_life_days": 20,
+        "thermal_sensitivity": 0.6,
+        "handling_fragility": 5
+    }
+]
+
+# Convert products master into DataFrame
+df_products = pd.DataFrame(products_master)
+
+# ==========================================================
+# OUTPUT TABLES
+# ==========================================================
+
+shipments = []
+sensors = []
+events = []
+quality_outcomes = []
+decision_logs = []
 
 # ==========================================================
 # SETTINGS
 # ==========================================================
 
-SHIPMENTS_PER_DAY = 50
+NUM_SHIPMENTS = 500   # You can increase to 5000 later
 READINGS_PER_SHIPMENT = 50
 
 export_standards = ["US", "EU", "China"]
@@ -21,83 +79,22 @@ event_types = ["delay", "handling", "temperature_spike", "humidity_drop", "port_
 agents = ["RiskAgent", "ComplianceAgent", "MonitoringAgent"]
 
 # ==========================================================
-# PRODUCT MASTER
+# GENERATE DATA
 # ==========================================================
 
-products_master = [
-    {
-        "product_id": "P001",
-        "product_name": "Mango",
-        "temp_min": 1,
-        "temp_max": 3,
-        "critical_threshold": 6,
-        "humidity_min": 85,
-        "humidity_max": 95,
-        "thermal_sensitivity": 0.8
-    },
-    {
-        "product_id": "P002",
-        "product_name": "Grape",
-        "temp_min": 0,
-        "temp_max": 2,
-        "critical_threshold": 5,
-        "humidity_min": 90,
-        "humidity_max": 98,
-        "thermal_sensitivity": 0.9
-    },
-    {
-        "product_id": "P003",
-        "product_name": "Pomegranate",
-        "temp_min": 2,
-        "temp_max": 4,
-        "critical_threshold": 7,
-        "humidity_min": 80,
-        "humidity_max": 90,
-        "thermal_sensitivity": 0.6
-    }
-]
+print("Generating full cold-chain synthetic dataset...")
 
-# ==========================================================
-# FUNCTION TO APPEND DATA TO EXCEL
-# ==========================================================
-
-def append_to_excel(filename, data):
-
-    df_new = pd.DataFrame(data)
-
-    if os.path.exists(filename):
-        df_existing = pd.read_excel(filename)
-        df_combined = pd.concat([df_existing, df_new], ignore_index=True)
-    else:
-        df_combined = df_new
-
-    df_combined.to_excel(filename, index=False)
-
-
-# ==========================================================
-# DATA STORAGE
-# ==========================================================
-
-shipments = []
-sensors = []
-events = []
-quality_outcomes = []
-decision_logs = []
-
-today = datetime.now()
-
-# ==========================================================
-# GENERATE DAILY SHIPMENTS
-# ==========================================================
-
-for i in range(SHIPMENTS_PER_DAY):
+for i in range(NUM_SHIPMENTS):
 
     shipment_id = str(uuid.uuid4())
     product = random.choice(products_master)
 
-    created_time = today
+    created_time = datetime.now() - timedelta(days=random.randint(1, 30))
     expected_delivery = created_time + timedelta(days=5)
 
+    # -------------------------------
+    # Shipment Table Row
+    # -------------------------------
     shipments.append({
         "shipment_id": shipment_id,
         "product_type": product["product_name"],
@@ -110,26 +107,30 @@ for i in range(SHIPMENTS_PER_DAY):
         "expected_delivery_date": expected_delivery
     })
 
+    # -------------------------------
+    # Sensors Table Rows
+    # -------------------------------
     base_temp = (product["temp_min"] + product["temp_max"]) / 2
     base_humidity = (product["humidity_min"] + product["humidity_max"]) / 2
 
     anomaly_count = 0
 
-    # ------------------------------------------------------
-    # SENSOR DATA
-    # ------------------------------------------------------
-
     for r in range(READINGS_PER_SHIPMENT):
 
         timestamp = created_time + timedelta(minutes=15 * r)
+
         stage = random.choice(stages)
 
+        # Temperature Sensor
         temp = base_temp + random.uniform(-1, 1)
+
+        # Humidity Sensor
         humidity = base_humidity + random.uniform(-5, 5)
 
-        temp_anomaly = temp > product["critical_threshold"]
+        is_anomalous = False
 
-        if temp_anomaly:
+        if temp > product["critical_threshold"]:
+            is_anomalous = True
             anomaly_count += 1
 
         sensors.append({
@@ -140,7 +141,7 @@ for i in range(SHIPMENTS_PER_DAY):
             "value": round(temp, 2),
             "unit": "°C",
             "location_stage": stage,
-            "is_anomalous": temp_anomaly
+            "is_anomalous": is_anomalous
         })
 
         sensors.append({
@@ -154,58 +155,84 @@ for i in range(SHIPMENTS_PER_DAY):
             "is_anomalous": humidity < product["humidity_min"]
         })
 
-    # ------------------------------------------------------
-    # EVENTS (40% probability)
-    # ------------------------------------------------------
+    # -------------------------------
+    # Events Table Rows
+    # -------------------------------
+    if random.random() > 0.6:  # 40% shipments have events
 
-    if random.random() > 0.6:
+        event = random.choice(event_types)
+
+        severity = random.choice(["low", "medium", "high"])
+
+        quality_loss = round(random.uniform(2, 20), 2)
 
         events.append({
             "event_id": str(uuid.uuid4()),
             "shipment_id": shipment_id,
-            "event_type": random.choice(event_types),
-            "severity": random.choice(["low", "medium", "high"]),
-            "timestamp": created_time + timedelta(hours=random.randint(5, 48)),
+            "event_type": event,
+            "severity": severity,
+            "timestamp": created_time + timedelta(hours=random.randint(5, 80)),
             "duration_minutes": random.randint(30, 300),
-            "location": random.choice(locations)
+            "description": f"Synthetic event: {event}",
+            "location": random.choice(locations),
+            "impact_on_quality": quality_loss
         })
 
-    # ------------------------------------------------------
-    # QUALITY OUTCOME
-    # ------------------------------------------------------
-
+    # -------------------------------
+    # Quality Outcomes Table
+    # -------------------------------
     final_quality = max(0, 95 - anomaly_count * product["thermal_sensitivity"])
 
     spoilage = "yes" if final_quality < 70 else "no"
+    compliance = "failed" if spoilage == "yes" else "passed"
+
+    loss_kg = round(random.uniform(0, 500), 2)
+    loss_percent = round((loss_kg / 10000) * 100, 2)
 
     quality_outcomes.append({
         "shipment_id": shipment_id,
         "final_quality_score": round(final_quality, 2),
-        "spoilage_observed": spoilage
+        "spoilage_observed": spoilage,
+        "compliance_status": compliance,
+        "customer_feedback": random.choice(["good", "average", "poor"]),
+        "actual_losses": loss_kg,
+        "loss_percentage": loss_percent,
+        "feedback_timestamp": expected_delivery + timedelta(days=1)
     })
 
-    # ------------------------------------------------------
-    # DECISION LOG
-    # ------------------------------------------------------
-
+    # -------------------------------
+    # Decision Log Table
+    # -------------------------------
     decision_logs.append({
         "decision_id": str(uuid.uuid4()),
         "shipment_id": shipment_id,
         "agent_name": random.choice(agents),
+        "recommendation": "Increase cooling / reroute shipment",
         "risk_score": round(random.uniform(0, 1), 2),
         "confidence": round(random.uniform(0.6, 0.99), 2),
-        "timestamp": created_time
+        "operator_action": random.choice(["approved", "rejected", "modified"]),
+        "operator_id": f"OP-{random.randint(100,999)}",
+        "operator_notes": "Synthetic operator note",
+        "timestamp": created_time + timedelta(hours=random.randint(1, 10)),
+        "outcome_result": random.choice(["good", "poor"])
     })
 
-
 # ==========================================================
-# APPEND TO EXCEL FILES
+# SAVE ALL TABLES TO EXCEL
 # ==========================================================
 
-append_to_excel("shipments.xlsx", shipments)
-append_to_excel("sensors.xlsx", sensors)
-append_to_excel("events.xlsx", events)
-append_to_excel("quality_outcomes.xlsx", quality_outcomes)
-append_to_excel("decision_log.xlsx", decision_logs)
+pd.DataFrame(shipments).to_excel("shipments.xlsx", index=False)
+pd.DataFrame(sensors).to_excel("sensors.xlsx", index=False)
+pd.DataFrame(events).to_excel("events.xlsx", index=False)
+pd.DataFrame(quality_outcomes).to_excel("quality_outcomes.xlsx", index=False)
+pd.DataFrame(products_master).to_excel("products_master.xlsx", index=False)
+pd.DataFrame(decision_logs).to_excel("decision_log.xlsx", index=False)
 
-print("✅ 50 new shipments generated and appended to Excel successfully.")
+print("\n✅ FULL DATASET GENERATED SUCCESSFULLY!")
+print("Excel Files Created:")
+print("1. shipments.xlsx")
+print("2. sensors.xlsx")
+print("3. events.xlsx")
+print("4. quality_outcomes.xlsx")
+print("5. products_master.xlsx")
+print("6. decision_log.xlsx")

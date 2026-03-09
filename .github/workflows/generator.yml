@@ -2,56 +2,65 @@ name: Cold Chain Data Generator
 
 on:
   schedule:
-    - cron: "0 * * * *"
-  workflow_dispatch:
+    - cron: "0 0 * * *"   # Runs once every day automatically
+  workflow_dispatch:     # Allows manual run
 
 jobs:
   generate-data:
     runs-on: ubuntu-latest
 
     steps:
+
+      # 1 Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2 Setup Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
+      # 3 Install dependencies
       - name: Install dependencies
         run: |
-          pip install -r requirements.txt
+          pip install pandas openpyxl numpy
 
-      # STEP 1 — Generate synthetic data
+      # 4 Run Synthetic Data Generator
       - name: Run Synthetic Generator
         run: |
           python full_synthetic_generator.py
 
-      # STEP 2 — Agent 1
+      # 5 Agent 1 - Sensor Validation
       - name: Run Sensor Validation Agent
         run: |
           python SensorValidationAgent.py
 
-      # STEP 3 — Agent 2
+      # 6 Agent 2 - Quality Risk Prediction
       - name: Run Quality Risk Agent
         run: |
           python QualityRiskAgent.py
 
-      # STEP 4 — Agent 3
-      - name: Run Root Cause Analysis Agent
+      # 7 Agent 3 - Root Cause Analysis
+      - name: Run Root Cause Agent
         run: |
           python RootCauseAnalysisAgent.py
 
-      # STEP 5 — Agent 4
+      # 8 Agent 4 - Prescriptive Recommendations
       - name: Run Recommendation Agent
         run: |
           python RecommendationAgent.py
 
-      # STEP 6 — Commit results
-      - name: Commit generated files
+      # 9 Decision Support Agent (combines 2,3,4 outputs)
+      - name: Run Decision Support Agent
+        run: |
+          python DecisionSupportAgent.py
+
+      # 10 Commit generated files back to repository
+      - name: Commit updated files
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
           git add *.xlsx
-          git commit -m "Daily generated + agent outputs" || echo "No changes"
+          git commit -m "Daily synthetic data + agent outputs" || echo "No changes to commit"
           git push

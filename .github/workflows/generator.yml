@@ -2,7 +2,7 @@ name: Cold Chain Data Generator
 
 on:
   schedule:
-    - cron: "0 * * * *"   # runs once every day at 00:00 UTC
+    - cron: "0 0 * * *"   # runs once every day at 00:00 UTC
   workflow_dispatch:     # allows manual run too
 
 jobs:

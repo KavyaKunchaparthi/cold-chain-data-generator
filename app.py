@@ -22,10 +22,8 @@ time.sleep(1)
 # LOAD DATA
 # -----------------------------
 def load_data():
-
     if DATA_FILE.endswith(".xlsx"):
         return pd.read_excel(DATA_FILE)
-
     else:
         return pd.read_csv(DATA_FILE)
 

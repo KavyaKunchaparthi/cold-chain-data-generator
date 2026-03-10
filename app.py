@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 import os
-import time
+from streamlit_autorefresh import st_autorefresh
 
 # -----------------------------
 # CONFIG
@@ -13,14 +13,14 @@ DATA_FILE = "Decision_Support_Output.xlsx"
 AUDIT_FILE = "audit_log.csv"
 
 # -----------------------------
-# AUTO REFRESH
+# AUTO REFRESH (1 minute)
 # -----------------------------
-st_autorefresh = st.empty()
-time.sleep(1)
+st_autorefresh(interval=60000, key="datarefresh")
 
 # -----------------------------
-# LOAD DATA
+# LOAD DATA (refresh every 1 minute)
 # -----------------------------
+@st.cache_data(ttl=60)
 def load_data():
     if DATA_FILE.endswith(".xlsx"):
         return pd.read_excel(DATA_FILE)

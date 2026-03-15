@@ -35,6 +35,24 @@ df = load_data()
 st.title("🚚 Cold-Chain Decision Support Dashboard")
 
 # -----------------------------
+# ROLE BASED ACCESS
+# -----------------------------
+role = st.sidebar.selectbox(
+    "User Role",
+    ["Operator", "Manager"]
+)
+
+manager_access = False
+
+if role == "Manager":
+    password = st.sidebar.text_input("Enter Manager Password", type="password")
+
+    if password == "admin123":
+        manager_access = True
+    else:
+        st.sidebar.warning("Manager password required")
+
+# -----------------------------
 # RISK SUMMARY
 # -----------------------------
 green = (df["risk_level"] == "GREEN").sum()
@@ -157,13 +175,41 @@ if st.button("✅ Submit Decision"):
 
     st.success("✅ Decision logged successfully to audit trail!")
 
-    with open(AUDIT_FILE, "rb") as file:
-        st.download_button(
-            label="⬇️ Download Audit Log",
-            data=file,
-            file_name="audit_log.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+# -----------------------------
+# MANAGER SECTION (PROTECTED)
+# -----------------------------
+if role == "Manager" and manager_access:
+
+    st.subheader("📊 Decision Monitoring")
+
+    if os.path.exists(AUDIT_FILE):
+
+        audit_df = pd.read_excel(AUDIT_FILE)
+
+        col1, col2, col3 = st.columns(3)
+
+        col1.metric("Total Decisions", len(audit_df))
+        col2.metric("Approved", (audit_df["operator_decision"] == "Approve").sum())
+        col3.metric("Rejected", (audit_df["operator_decision"] == "Reject").sum())
+
+        st.write("### Recommendation Implementation")
+
+        impl_counts = audit_df["recommendation_implemented"].value_counts()
+
+        st.bar_chart(impl_counts)
+
+        # Download audit log
+        with open(AUDIT_FILE, "rb") as file:
+            st.download_button(
+                label="⬇️ Download Audit Log",
+                data=file,
+                file_name="audit_log.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            )
+
+    else:
+        st.info("No audit log available yet.")
+
 # -----------------------------
 # FOOTER
 # -----------------------------

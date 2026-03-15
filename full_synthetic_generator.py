@@ -179,8 +179,7 @@ for i in range(NUM_SHIPMENTS):
 append_to_excel(pd.DataFrame(shipments), "shipments.xlsx")
 append_to_excel(pd.DataFrame(sensors), "sensors.xlsx")
 append_to_excel(pd.DataFrame(events), "events.xlsx")
-append_to_excel(pd.DataFrame(quality_outcomes), "quality_outcomes.xlsx")
-append_to_excel(pd.DataFrame(decision_logs), "decision_log.xlsx")
+
 
 # Overwrite master products file (constant 3 products)
 pd.DataFrame(products_master).to_excel("products_master.xlsx", index=False)
@@ -190,6 +189,5 @@ print("Excel Files Created / Updated:")
 print("1. shipments.xlsx")
 print("2. sensors.xlsx")
 print("3. events.xlsx")
-print("4. quality_outcomes.xlsx")
-print("5. products_master.xlsx")
-print("6. decision_log.xlsx")
+print("4. products_master.xlsx")
+

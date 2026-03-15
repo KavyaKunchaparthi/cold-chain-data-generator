@@ -18,7 +18,7 @@ AUDIT_FILE = "audit_log.xlsx"
 st_autorefresh(interval=60000, key="datarefresh")
 
 # -----------------------------
-# LOAD DATA (refresh every 1 minute)
+# LOAD DATA
 # -----------------------------
 @st.cache_data(ttl=60)
 def load_data():
@@ -116,7 +116,7 @@ decision = st.radio(
     ["Approve", "Modify", "Reject"],
     horizontal=True
 )
-# Track if recommendation was implemented
+
 implemented = st.selectbox(
     "Was the recommendation implemented?",
     ["YES", "NO", "PARTIAL"]
@@ -142,18 +142,18 @@ if st.button("✅ Submit Decision"):
 
     if os.path.exists(AUDIT_FILE):
 
-    audit_df = pd.read_excel(AUDIT_FILE)
+        audit_df = pd.read_excel(AUDIT_FILE)
 
-    audit_df = pd.concat(
-        [audit_df, pd.DataFrame([log_entry])],
-        ignore_index=True
-    )
+        audit_df = pd.concat(
+            [audit_df, pd.DataFrame([log_entry])],
+            ignore_index=True
+        )
 
-else:
+    else:
 
-    audit_df = pd.DataFrame([log_entry])
+        audit_df = pd.DataFrame([log_entry])
 
-audit_df.to_excel(AUDIT_FILE, index=False)
+    audit_df.to_excel(AUDIT_FILE, index=False)
 
     st.success("✅ Decision logged successfully to audit trail!")
 
@@ -161,5 +161,3 @@ audit_df.to_excel(AUDIT_FILE, index=False)
 # FOOTER
 # -----------------------------
 st.caption("Cold-Chain Decision Support System | Agentic AI + Human-in-the-Loop")
-
-

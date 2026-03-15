@@ -161,3 +161,14 @@ if st.button("✅ Submit Decision"):
 # FOOTER
 # -----------------------------
 st.caption("Cold-Chain Decision Support System | Agentic AI + Human-in-the-Loop")
+
+# -----------------------------
+# SHOW AUDIT LOG
+# -----------------------------
+if os.path.exists(AUDIT_FILE):
+
+    st.subheader("📜 Audit Log")
+
+    audit_df = pd.read_csv(AUDIT_FILE)
+
+    st.dataframe(audit_df, use_container_width=True)

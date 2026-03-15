@@ -172,44 +172,7 @@ for i in range(NUM_SHIPMENTS):
             "impact_on_quality": quality_loss
         })
 
-    # -------------------------------
-    # Quality Outcomes Table
-    # -------------------------------
-    final_quality = max(0, 95 - anomaly_count * product["thermal_sensitivity"])
-    spoilage = "yes" if final_quality < 70 else "no"
-    compliance = "failed" if spoilage == "yes" else "passed"
-
-    loss_kg = round(random.uniform(0, 500), 2)
-    loss_percent = round((loss_kg / 10000) * 100, 2)
-
-    quality_outcomes.append({
-        "shipment_id": shipment_id,
-        "final_quality_score": round(final_quality, 2),
-        "spoilage_observed": spoilage,
-        "compliance_status": compliance,
-        "customer_feedback": random.choice(["good", "average", "poor"]),
-        "actual_losses": loss_kg,
-        "loss_percentage": loss_percent,
-        "feedback_timestamp": expected_delivery + timedelta(days=1)
-    })
-
-    # -------------------------------
-    # Decision Log Table
-    # -------------------------------
-    decision_logs.append({
-        "decision_id": str(uuid.uuid4()),
-        "shipment_id": shipment_id,
-        "agent_name": random.choice(agents),
-        "recommendation": "Increase cooling / reroute shipment",
-        "risk_score": round(random.uniform(0, 1), 2),
-        "confidence": round(random.uniform(0.6, 0.99), 2),
-        "operator_action": random.choice(["approved", "rejected", "modified"]),
-        "operator_id": f"OP-{random.randint(100,999)}",
-        "operator_notes": "Synthetic operator note",
-        "timestamp": created_time + timedelta(hours=random.randint(1, 10)),
-        "outcome_result": random.choice(["good", "poor"])
-    })
-
+    
 # ==========================================================
 # SAVE ALL TABLES TO EXCEL
 # ==========================================================

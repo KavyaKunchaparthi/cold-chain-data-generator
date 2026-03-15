@@ -142,18 +142,18 @@ if st.button("✅ Submit Decision"):
 
     if os.path.exists(AUDIT_FILE):
 
-        audit_df = pd.read_csv(AUDIT_FILE)
+    audit_df = pd.read_excel(AUDIT_FILE)
 
-        audit_df = pd.concat(
-            [audit_df, pd.DataFrame([log_entry])],
-            ignore_index=True
-        )
+    audit_df = pd.concat(
+        [audit_df, pd.DataFrame([log_entry])],
+        ignore_index=True
+    )
 
-    else:
+else:
 
-        audit_df = pd.DataFrame([log_entry])
+    audit_df = pd.DataFrame([log_entry])
 
-    audit_df.to_csv(AUDIT_FILE, index=False)
+audit_df.to_excel(AUDIT_FILE, index=False)
 
     st.success("✅ Decision logged successfully to audit trail!")
 
@@ -162,13 +162,4 @@ if st.button("✅ Submit Decision"):
 # -----------------------------
 st.caption("Cold-Chain Decision Support System | Agentic AI + Human-in-the-Loop")
 
-# -----------------------------
-# SHOW AUDIT LOG
-# -----------------------------
-if os.path.exists(AUDIT_FILE):
 
-    st.subheader("📜 Audit Log")
-
-    audit_df = pd.read_csv(AUDIT_FILE)
-
-    st.dataframe(audit_df, use_container_width=True)

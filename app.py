@@ -156,6 +156,7 @@ if st.button("✅ Submit Decision"):
     audit_df.to_excel(AUDIT_FILE, index=False)
 
     st.success("✅ Decision logged successfully to audit trail!")
+    st.write("Audit file saved as:", AUDIT_FILE)
 
 # -----------------------------
 # FOOTER

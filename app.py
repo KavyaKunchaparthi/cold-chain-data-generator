@@ -155,15 +155,15 @@ if st.button("✅ Submit Decision"):
 
     audit_df.to_excel(AUDIT_FILE, index=False)
 
-   st.success("✅ Decision logged successfully to audit trail!")
+    st.success("✅ Decision logged successfully to audit trail!")
 
-with open(AUDIT_FILE, "rb") as file:
-    st.download_button(
-        label="⬇️ Download Audit Log",
-        data=file,
-        file_name="audit_log.xlsx",
-        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    )
+    with open(AUDIT_FILE, "rb") as file:
+        st.download_button(
+            label="⬇️ Download Audit Log",
+            data=file,
+            file_name="audit_log.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
 # -----------------------------
 # FOOTER
 # -----------------------------

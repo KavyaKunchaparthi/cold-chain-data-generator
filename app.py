@@ -28,7 +28,10 @@ def load_data():
         return pd.read_csv(DATA_FILE)
 
 df = load_data()
-
+if "actual_quality" in df.columns and "predicted_final_quality" in df.columns:
+    df["prediction_error"] = abs(
+        df["predicted_final_quality"] - df["actual_quality"]
+    )
 # -----------------------------
 # HEADER
 # -----------------------------

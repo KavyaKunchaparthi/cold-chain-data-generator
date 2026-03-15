@@ -10,7 +10,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="Cold-Chain Decision Support Dashboard", layout="wide")
 
 DATA_FILE = "Decision_Support_Output.xlsx"
-AUDIT_FILE = "audit_log.csv"
+AUDIT_FILE = "audit_log.xlsx"
 
 # -----------------------------
 # AUTO REFRESH (1 minute)

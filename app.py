@@ -28,10 +28,15 @@ def load_data():
         return pd.read_csv(DATA_FILE)
 
 df = load_data()
+
+# -----------------------------
+# AI PREDICTION ERROR
+# -----------------------------
 if "actual_quality" in df.columns and "predicted_final_quality" in df.columns:
     df["prediction_error"] = abs(
         df["predicted_final_quality"] - df["actual_quality"]
     )
+
 # -----------------------------
 # HEADER
 # -----------------------------
@@ -179,6 +184,31 @@ if st.button("✅ Submit Decision"):
     st.success("✅ Decision logged successfully to audit trail!")
 
 # -----------------------------
+# AI MODEL PERFORMANCE
+# -----------------------------
+if "prediction_error" in df.columns:
+
+    st.subheader("🤖 AI Prediction Performance")
+
+    accuracy = 100 - df["prediction_error"].mean()
+
+    col1, col2 = st.columns(2)
+
+    col1.metric(
+        "Prediction Accuracy",
+        f"{accuracy:.2f}%"
+    )
+
+    col2.metric(
+        "Average Prediction Error",
+        f"{df['prediction_error'].mean():.2f}"
+    )
+
+    st.write("### Prediction Error Distribution")
+
+    st.bar_chart(df["prediction_error"])
+
+# -----------------------------
 # MANAGER SECTION (PROTECTED)
 # -----------------------------
 if role == "Manager" and manager_access:
@@ -201,7 +231,6 @@ if role == "Manager" and manager_access:
 
         st.bar_chart(impl_counts)
 
-        # Download audit log
         with open(AUDIT_FILE, "rb") as file:
             st.download_button(
                 label="⬇️ Download Audit Log",

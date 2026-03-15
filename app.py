@@ -176,7 +176,6 @@ if st.button("✅ Submit Decision"):
         )
 
     else:
-
         audit_df = pd.DataFrame([log_entry])
 
     audit_df.to_excel(AUDIT_FILE, index=False)
@@ -184,35 +183,38 @@ if st.button("✅ Submit Decision"):
     st.success("✅ Decision logged successfully to audit trail!")
 
 # -----------------------------
-# AI MODEL PERFORMANCE
-# -----------------------------
-if "prediction_error" in df.columns:
-
-    st.subheader("🤖 AI Prediction Performance")
-
-    accuracy = 100 - df["prediction_error"].mean()
-
-    col1, col2 = st.columns(2)
-
-    col1.metric(
-        "Prediction Accuracy",
-        f"{accuracy:.2f}%"
-    )
-
-    col2.metric(
-        "Average Prediction Error",
-        f"{df['prediction_error'].mean():.2f}"
-    )
-
-    st.write("### Prediction Error Distribution")
-
-    st.bar_chart(df["prediction_error"])
-
-# -----------------------------
 # MANAGER SECTION (PROTECTED)
 # -----------------------------
 if role == "Manager" and manager_access:
 
+    # -----------------------------
+    # AI MODEL PERFORMANCE
+    # -----------------------------
+    if "prediction_error" in df.columns:
+
+        st.subheader("🤖 AI Model Performance Monitoring")
+
+        accuracy = 100 - df["prediction_error"].mean()
+
+        col1, col2 = st.columns(2)
+
+        col1.metric(
+            "Prediction Accuracy",
+            f"{accuracy:.2f}%"
+        )
+
+        col2.metric(
+            "Average Prediction Error",
+            f"{df['prediction_error'].mean():.2f}"
+        )
+
+        st.write("### Prediction Error Distribution")
+
+        st.bar_chart(df["prediction_error"])
+
+    # -----------------------------
+    # DECISION MONITORING
+    # -----------------------------
     st.subheader("📊 Decision Monitoring")
 
     if os.path.exists(AUDIT_FILE):

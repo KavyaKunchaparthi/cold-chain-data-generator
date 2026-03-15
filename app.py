@@ -135,6 +135,7 @@ if st.button("✅ Submit Decision"):
         "risk_score": shipment["risk_score"],
         "recommendation": shipment["top_recommendation"],
         "operator_decision": decision,
+        "recommendation_implemented": implemented,
         "operator_notes": notes,
         "timestamp": datetime.now().isoformat()
     }

@@ -12,19 +12,6 @@ def build_decision_support():
     df = df.merge(agent4, on="shipment_id")
 
     # -----------------------------
-    # HUMAN REVIEW FIELDS
-    # -----------------------------
-    df["review_status"] = "PENDING"
-    df["reviewed_by"] = ""
-    df["review_notes"] = ""
-    df["decision_timestamp"] = ""
-
-    # -----------------------------
-    # TIMESTAMP
-    # -----------------------------
-    df["generated_at"] = datetime.utcnow().isoformat()
-
-    # -----------------------------
     # SIMULATE ACTUAL DELIVERY QUALITY
     # -----------------------------
     if "predicted_final_quality" in df.columns:

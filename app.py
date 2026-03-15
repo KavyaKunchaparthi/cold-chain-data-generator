@@ -116,6 +116,11 @@ decision = st.radio(
     ["Approve", "Modify", "Reject"],
     horizontal=True
 )
+# Track if recommendation was implemented
+implemented = st.selectbox(
+    "Was the recommendation implemented?",
+    ["YES", "NO", "PARTIAL"]
+)
 
 notes = st.text_area("Operator Notes (optional)")
 
